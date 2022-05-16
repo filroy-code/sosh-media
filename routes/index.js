@@ -1,0 +1,61 @@
+var express = require("express");
+var router = express.Router();
+var soshController = require("../controllers/soshController");
+
+//HOMEPAGE
+router.get("/", soshController.index);
+
+
+//POSTS
+//Post: Create
+router.get("/new", soshController.post_create_get);
+router.post("/new", soshController.post_create_post);
+
+//Post: Details
+router.get("/:author/:post_id", soshController.post_details);
+
+//Post: Update
+router.put("/:author/:post_id", soshController.post_update);
+
+//Post: Delete
+router.delete("/:author/:post_id", soshController.post_delete);
+
+
+//COMMENTS
+
+//Comment: Details
+router.get("/:author/:post_id/:comment_id", soshController.comment_details);
+
+//Comment: Create
+router.post("/:author/:post_id/", soshController.comment_create);
+
+//Comment: Update
+router.put("/:author/:post_id/:comment_id", soshController.comment_update);
+
+//Comment: Delete
+router.delete("/:author/:post_id/:comment_id", soshController.comment_delete);
+
+
+//USERS
+//User: See profile.
+router.get("/:author", soshController.user_profile);
+
+//User: Edit details page.
+router.get("/:author/details", soshController.user_details_get);
+
+//User: Edit details (SUBMIT CHANGES).
+router.put("/:author/details", soshController.user_details_update);
+
+
+//AUTHENTICATION
+//User: Create
+router.get('/signup', soshController.signup_get);
+router.post('/signup', soshController.signup_post);
+
+//User: Login & Logout
+router.get("/login", soshController.login_get);
+router.post("/login", soshController.login_post);
+
+router.post("/logout", soshController.logout);
+
+module.exports = router;

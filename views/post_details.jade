@@ -1,0 +1,27 @@
+extends layout
+
+block content
+
+    if delete_error
+      h5 You must be logged in to delete a post.
+      
+    if post
+        h3 #{post.title} 
+        em #{post.formatted_date}
+        p.post_content #{post.content}
+        p #[strong Tags: ]
+            each tag, index in post.tags 
+                | #{tag.name}
+                if index < post.tags.length - 1
+                |, 
+        div.delete_confirm
+            form.box(method="POST", action='')
+                h3 Are you sure you would like to delete this post?
+                br
+                div
+                    button.delete_confirm_button Yes 
+                    a.delete_confirm_button(href="/") No
+
+    else
+      if (!delete_error)
+        p No post found.

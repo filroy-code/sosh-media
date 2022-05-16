@@ -1,0 +1,29 @@
+{
+  "name": "blog-site",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "nodemon": "./node_modules/nodemon/bin/nodemon.js app.js"
+  },
+  "dependencies": {
+    "async": "^3.2.3",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.0.1",
+    "express": "~4.16.1",
+    "express-session": "^1.17.3",
+    "express-validator": "^6.14.0",
+    "http-errors": "~1.6.3",
+    "jade": "~1.11.0",
+    "luxon": "^2.3.2",
+    "morgan": "~1.9.1",
+    "passport": "^0.5.2",
+    "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "mongoose": "^6.3.2",
+    "nodemon": "^2.0.16"
+  }
+}

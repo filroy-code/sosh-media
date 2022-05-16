@@ -1,0 +1,70 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+li {
+  list-style: none;
+}
+
+.tag {
+  padding: 3px;
+}
+
+.taglist {
+  margin: 10px 0px 10px 0px
+}
+
+.post_content {
+  border: 1px solid black;
+  padding: 10px;
+}
+
+.post {
+  padding: 5px;
+  margin-bottom: 20px;
+}
+
+.delete_confirm {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 40px;
+}
+
+.box {
+  padding: 15px;
+  background-color: rgb(252, 252, 86);
+}
+
+.delete_confirm_button {
+  padding: 15px;
+  margin: 5px;
+}
+
+.navigation {
+  display: flex;
+  gap: 15px;
+}
+
+.top {
+  position: absolute;
+  top: 0%;
+  padding: 10px;
+  border: 1px dashed gray;
+}
+
+.navContainer {
+  min-width: 300px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.navContainer > p {
+  margin: 2.8px;
+}

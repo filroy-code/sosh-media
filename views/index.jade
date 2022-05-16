@@ -1,0 +1,47 @@
+extends layout
+
+block content
+
+  //- if (user)
+  //-     .top
+  //-       .navContainer
+  //-         p Logged in as #{user.username}
+  //-         form(action="/logout" method="POST") 
+  //-           button(type="submit") Log Out
+
+  //- if (!user)
+  //-   .links 
+  //-     ul.navigation 
+  //-       li
+  //-         a(href="signup") Sign Up 
+  //-       li
+  //-         a(href="login") Filip's Log-In! 
+        
+  //- if (user)
+  //-   .links 
+  //-     ul.navigation 
+  //-       li
+  //-         a(href="new") New Post 
+
+  .title
+    h1= title
+    p Welcome to #{title}
+
+  hr
+
+  ul.posts 
+    each post in post_list
+      li.post
+        h3 #{post.title} 
+        em #{post.formatted_date}
+        p.post_content #{post.content}
+        p #[strong Tags: ]
+          each tag, index in post.tags 
+            | #{tag.name}
+            if index < post.tags.length - 1
+              |, 
+        if (user)
+          a(href=post.url+'/delete') Delete this post.
+
+    else
+      li There are no posts yet.

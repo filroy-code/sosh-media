@@ -1,0 +1,32 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+
+    if (user)
+      .top
+        .navContainer
+          p Logged in as #{user.username}
+          form(action="/logout" method="POST") 
+            button(type="submit") Log Out
+
+    if (!user)
+      .links 
+        ul.navigation 
+          //- li
+          //-   a(href="signup") Sign Up 
+          li
+            a(href="/login") Filip's Log-In! 
+        
+    if (user)
+      .links 
+        ul.navigation 
+          li
+            if (home)
+              a(href="new") New Post 
+            if (!home)
+              a(href="/") Home
+
+    block content

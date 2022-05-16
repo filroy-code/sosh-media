@@ -1,0 +1,15 @@
+extends layout
+
+block content
+        
+    .title
+        h1 Signup
+
+    .inputs 
+        form(action="/signup" method="POST") 
+            input(type='text', name='username', placeholder='username')
+            input(type='password', name='password', placeholder='password')
+            button(type="submit") Submit
+
+    br
+    a(href="/") Return Home
