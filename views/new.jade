@@ -9,13 +9,13 @@ block content
 
     .inputs 
         form(action="" method="POST") 
-            input(type='text', name='title', value=`${post_title}`, placeholder='what is the title of your post?')
-            <br>
             textarea(name='content', value=`${post_content}`, cols='70', rows='7', placeholder="type your post's content here")
             <br>
-            .taglist
-                each tag in tags 
-                    .tag
-                        input(type="checkbox", name='post_tags', value=`${tag._id}`)
-                        label(for=`${tag._id}`) #{tag.name}
+            input(name='post_tags', placeholder="type your desired post tags here")
+            <br>
+            //- .taglist
+            //-     each tag in tags 
+            //-         .tag
+            //-             input(type="checkbox", name='post_tags', value=`${tag._id}`)
+            //-             label(for=`${tag._id}`) #{tag.name}
             button(type="submit") Submit
