@@ -32,7 +32,7 @@ block content
   ul.posts 
     each post in post_list
       li.post
-        h3 #{post.title} 
+        a(href='/'+post.author) #{post.author} 
         em #{post.formatted_date}
         p.post_content #{post.content}
         p #[strong Tags: ]
@@ -40,8 +40,7 @@ block content
             | #{tag.name}
             if index < post.tags.length - 1
               |, 
-        if (user)
-          a(href=post.url+'/delete') Delete this post.
+        a(href='/'+post.author+post.url) Post Details
 
     else
       li There are no posts yet.

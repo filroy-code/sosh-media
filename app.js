@@ -30,8 +30,7 @@ app.set("view engine", "jade");
 
 passport.use(
   new LocalStrategy((username, password, done) => {
-    console.log(username, password);
-    User.findOne({ username: username }, (err, user) => {
+    User.findOne({ username: username.toLowerCase() }, (err, user) => {
       if (err) {
         return done(err);
       }

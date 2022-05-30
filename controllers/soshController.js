@@ -12,7 +12,7 @@ const { token } = require("morgan");
 require("dotenv").config();
 
 exports.index = function (req, res, next) {
-  Post.find({}, "title content date tags formatted_date comments")
+  Post.find({}, "author content date tags comments stars")
     .sort({ date: -1 })
     .populate("tags")
     .exec(function (err, list_posts) {
@@ -45,7 +45,7 @@ exports.post_create_post = [
     // Create a Post object with escaped and trimmed data.
     const post = new Post({
       // author: jwt.decode(),
-      author: "john bonham",
+      author: "john_bonham",
       content: req.body.content,
       date: new Date(),
       tags: [],
@@ -80,11 +80,10 @@ exports.post_create_post = [
   },
 ];
 
-exports.post_details = (req, res, next) => {
-  res.json({
-    author: req.params.author,
-    post: req.params.post_id,
-  });
+exports.post_details = async (req, res, next) => {
+  let post = await Post.findById(req.params.post_id)
+  console.log(post)
+  res.json({ ...post._doc });
 };
 
 exports.post_update = (req, res, next) => {
@@ -111,12 +110,13 @@ exports.comment_delete = (req, res, next) => {
   res.send("Comment delete DELETE");
 };
 
-exports.user_profile = (req, res, next) => {
-  res.send("Show user profile.");
+exports.user_profile = async (req, res, next) => {
+  const user = await User.find({username: req.params.author}, "username")
+  res.json( {...user} );
 };
 
 exports.user_details_get = (req, res, next) => {
-  res.send("Get user details update page.");
+  res.send("User details/preferences")
 };
 
 exports.user_details_update = (req, res, next) => {
@@ -136,7 +136,7 @@ exports.signup_post = async function (req, res, next) {
   {
     bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
       const user = new User({
-        username: req.body.username,
+        username: req.body.username.toLowerCase(),
         password: hashedPassword,
       })
         .save()
