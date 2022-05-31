@@ -14,6 +14,10 @@ block content
                 | #{tag.name}
                 if index < post.tags.length - 1
                 |, 
+        each comment in post.comments 
+          p #{comment}
+        form(method="POST", action=post.url)
+          input(type="text", name="new_comment" placeholder="add a comment...")
         div.delete_confirm
             form.box(method="POST", action='')
                 h3 Are you sure you would like to delete this post?

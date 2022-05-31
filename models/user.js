@@ -5,7 +5,9 @@ const UserSchema = new Schema({
     username: { type: String, required: true },
     password: { type: String, required: true },
     posts: {type: Schema.Types.ObjectId, ref: 'Post'},
-    vibes: {type: Schema.Types.ObjectId, ref: 'Tag'}
+    connections: {type: Schema.Types.ObjectId, ref: 'User'},
+    vibes: {type: Schema.Types.ObjectId, ref: 'Tag'},
+    // isPrivate: {type: Boolean, required: true}
 })
 
   //Export model

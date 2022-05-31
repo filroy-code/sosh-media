@@ -23,6 +23,7 @@ router.post("/new", soshController.post_create_post);
 
 //Post: Details
 router.get("/:author/:post_id", soshController.post_details);
+router.get("/:author/:post_id/deets", soshController.post_details_deets);
 
 //Post: Update
 router.put("/:author/:post_id", soshController.post_update);

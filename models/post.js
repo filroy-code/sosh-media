@@ -17,7 +17,7 @@ const PostSchema = new Schema({
 
 // Virtual for post's URL
 PostSchema.virtual("url").get(function () {
-  return "/" + this._id;
+  return "/" + this.author + '/' + this._id;
 });
 
 // Virtual for formatted date.

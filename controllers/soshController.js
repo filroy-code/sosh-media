@@ -86,6 +86,12 @@ exports.post_details = async (req, res, next) => {
   res.json({ ...post._doc });
 };
 
+exports.post_details_deets = async (req, res, next) => {
+  let post = await Post.findById(req.params.post_id)
+  console.log(post)
+  res.render('post_details', {post: post});
+};
+
 exports.post_update = (req, res, next) => {
   res.send("Post update PUT");
 };
@@ -98,8 +104,31 @@ exports.comment_details = (req, res, next) => {
   res.send("Comment details");
 };
 
-exports.comment_create = (req, res, next) => {
-  res.send("Comment create");
+exports.comment_create = async (req, res, next) => {
+  body('comment', 'Comment must contain some content.').trim().isLength({ min: 1 }).escape()
+
+  let post = await Post.findById(req.params.post_id)
+  if (!(post.comments instanceof Array)) {
+      if (typeof post.comments === "undefined") post.comments = [];
+      else post.comments = new Array(post.comments);
+  }
+  post.comments.push(req.body.new_comment)
+
+  const errors = validationResult(req);
+
+  const savedPost = new Post(
+    {
+      ...post,
+      comments: post.comments,
+      _id: req.params.post_id
+     });
+
+  if (!errors.isEmpty()) {res.json({message: errors})}
+  else {
+    let updatedPost = Post.findByIdAndUpdate(req.params.post_id, savedPost, {new: true}, async function (err, result) {
+      if (err) { return next(err); } else {res.json(result)}
+      })
+  }
 };
 
 exports.comment_update = (req, res, next) => {
