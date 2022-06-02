@@ -97,8 +97,10 @@ exports.post_delete = (req, res, next) => {
   res.send("Post DELETE");
 };
 
-exports.comment_details = (req, res, next) => {
-  res.send("Comment details");
+exports.comment_details = async (req, res, next) => {
+  let comment = await Comment.findById(req.params.comment_id).populate("targetPost")
+  console.log(comment)
+  res.json({comment})
 };
 
 exports.comment_create =[
@@ -155,8 +157,9 @@ exports.user_profile = async (req, res, next) => {
   res.json( {...user} );
 };
 
-exports.user_details_get = (req, res, next) => {
-  res.send("User details/preferences")
+exports.user_details_get = async (req, res, next) => {
+  const user = await User.find({username: req.params.author}, "username")
+  res.json( {...user} );
 };
 
 exports.user_details_update = (req, res, next) => {

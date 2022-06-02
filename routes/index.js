@@ -49,7 +49,7 @@ router.delete("/:author/:post_id/:comment_id", soshController.comment_delete);
 //User: See profile.
 router.get("/:author", soshController.user_profile);
 
-//User: Edit details page.
+//User: User details page.
 router.get("/:author/details", soshController.user_details_get);
 
 //User: Edit details (SUBMIT CHANGES).
