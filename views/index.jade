@@ -40,7 +40,7 @@ block content
             | #{tag.name}
             if index < post.tags.length - 1
               |, 
-        a(href='/'+post.author+post.url) Post Details
+        a(href=post.url) Post Details
 
     else
       li There are no posts yet.

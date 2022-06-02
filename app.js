@@ -90,10 +90,8 @@ passport.use(
 
 app.use(passport.initialize());
 
-var corsOptions = {
-  origin: "http://localhost:8081"
-};
-app.use(cors(corsOptions));
+
+app.use(cors());
 
 app.use(logger("dev"));
 app.use(express.json());

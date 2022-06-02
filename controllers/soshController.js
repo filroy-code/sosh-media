@@ -49,7 +49,6 @@ exports.post_create_post = [
       content: req.body.content,
       date: new Date(),
       tags: [],
-      comments: [],
       stars: 0,
     });
 
@@ -82,13 +81,11 @@ exports.post_create_post = [
 
 exports.post_details = async (req, res, next) => {
   let post = await Post.findById(req.params.post_id)
-  console.log(post)
   res.json({ ...post._doc });
 };
 
 exports.post_details_deets = async (req, res, next) => {
   let post = await Post.findById(req.params.post_id)
-  console.log(post)
   res.render('post_details', {post: post});
 };
 
@@ -104,15 +101,27 @@ exports.comment_details = (req, res, next) => {
   res.send("Comment details");
 };
 
-exports.comment_create = async (req, res, next) => {
-  body('comment', 'Comment must contain some content.').trim().isLength({ min: 1 }).escape()
+exports.comment_create =[
+  body('new_comment', 'Comment must contain some content.').trim().isLength({ min: 3 }).escape(),
 
+  async (req, res, next) => {
+    
   let post = await Post.findById(req.params.post_id)
   if (!(post.comments instanceof Array)) {
       if (typeof post.comments === "undefined") post.comments = [];
       else post.comments = new Array(post.comments);
   }
-  post.comments.push(req.body.new_comment)
+
+  const newComment = new Comment({
+    targetPost: req.params.post_id,
+    author: "jane_doe",
+    date: new Date(),
+    content: req.body.new_comment,
+    comments: [],
+    stars: 0
+  })
+
+  post.comments.push(newComment._id)
 
   const errors = validationResult(req);
 
@@ -123,13 +132,15 @@ exports.comment_create = async (req, res, next) => {
       _id: req.params.post_id
      });
 
-  if (!errors.isEmpty()) {res.json({message: errors})}
+  if (!errors.isEmpty()) {return res.json({message: errors})}
   else {
-    let updatedPost = Post.findByIdAndUpdate(req.params.post_id, savedPost, {new: true}, async function (err, result) {
-      if (err) { return next(err); } else {res.json(result)}
-      })
+    newComment.save().then(
+      Post.findByIdAndUpdate(req.params.post_id, savedPost, {new: true}, async function (err, result) {
+        if (err) { return next(err); } else {res.json(result)}
+        })
+    )
   }
-};
+}];
 
 exports.comment_update = (req, res, next) => {
   res.send("Comment edit PUT");

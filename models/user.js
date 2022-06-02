@@ -2,11 +2,11 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-    username: { type: String, required: true },
+    username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     posts: {type: Schema.Types.ObjectId, ref: 'Post'},
     connections: {type: Schema.Types.ObjectId, ref: 'User'},
-    vibes: {type: Schema.Types.ObjectId, ref: 'Tag'},
+    // vibes: {type: Schema.Types.ObjectId, ref: 'Tag'},
     // isPrivate: {type: Boolean, required: true}
 })
 
