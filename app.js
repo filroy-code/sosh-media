@@ -11,7 +11,7 @@ const ExtractJWT = require("passport-jwt").ExtractJwt;
 const jsonwebtoken = require("jsonwebtoken");
 const User = require("./models/user");
 const bcrypt = require("bcryptjs");
-const issueJWT = require("./config/issueJWT")
+const issueJWT = require("./config/issueJWT");
 require("dotenv").config();
 
 var mongoose = require("mongoose");
@@ -61,7 +61,6 @@ const opts = {
 
 passport.use(
   new JWTStrategy(opts, function (jwt_payload, done) {
-    console.log(jwt_payload);
     User.findOne(
       {
         _id: jwt_payload.sub,
@@ -71,17 +70,13 @@ passport.use(
           res.status(401).json({ success: false, message: "No user found." });
         }
         if (user) {
-          bcrypt.compare(password, user.password, (err, res) => {
-            if (res) {
-              // passwords match! log user in
-              return done(null, user);
-            } else {
-              res
-                .status(401)
-                .json({ success: false, message: "Incorrect password." });
-              // or you could create a new account
-            }
-          });
+          console.log(user);
+          return done(null, user);
+        } else {
+          res
+            .status(401)
+            .json({ success: false, message: "You are not logged in." });
+          // or you could create a new account
         }
       }
     );
@@ -90,8 +85,13 @@ passport.use(
 
 app.use(passport.initialize());
 
+const corsOptions = {
+  "Access-Control-Allow-Origin": "http://localhost:8080",
+  "Access-Control-Allow-Methods": "GET, DELETE, POST, PUT",
+  "Access-Control-Allow-Headers": "",
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(logger("dev"));
 app.use(express.json());

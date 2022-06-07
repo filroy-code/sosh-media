@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const JWTStrategy = require("passport-jwt").Strategy;
 const jsonwebtoken = require("jsonwebtoken");
-const issueJWT = require("../config/issueJWT")
+const issueJWT = require("../config/issueJWT");
 const { token } = require("morgan");
 require("dotenv").config();
 
@@ -54,13 +54,12 @@ exports.post_create_post = [
 
     if (!errors.isEmpty()) {
       // There are errors. Render form again with sanitized values/error messages.
-        {
+      {
         res.render("new", {
           errors: errors.array(),
-        })};
-    }
-    
-    else {
+        });
+      }
+    } else {
       // Data from form is valid. Save post.
       post.save(function (err) {
         if (err) {
@@ -79,14 +78,17 @@ exports.post_create_post = [
   },
 ];
 
-exports.post_details = async (req, res, next) => {
-  let post = await Post.findById(req.params.post_id)
-  res.json({ ...post._doc });
-};
+exports.post_details = [
+  passport.authenticate("jwt", { session: false }),
+  async (req, res, next) => {
+    let post = await Post.findById(req.params.post_id);
+    res.json({ ...post._doc });
+  },
+];
 
 exports.post_details_deets = async (req, res, next) => {
-  let post = await Post.findById(req.params.post_id)
-  res.render('post_details', {post: post});
+  let post = await Post.findById(req.params.post_id);
+  res.render("post_details", { post: post });
 };
 
 exports.post_update = (req, res, next) => {
@@ -98,51 +100,65 @@ exports.post_delete = (req, res, next) => {
 };
 
 exports.comment_details = async (req, res, next) => {
-  let comment = await Comment.findById(req.params.comment_id).populate("targetPost")
-  console.log(comment)
-  res.json({comment})
+  let comment = await Comment.findById(req.params.comment_id).populate(
+    "targetPost"
+  );
+  console.log(comment);
+  res.json({ comment });
 };
 
-exports.comment_create =[
-  body('new_comment', 'Comment must contain some content.').trim().isLength({ min: 3 }).escape(),
+exports.comment_create = [
+  body("new_comment", "Comment must contain some content.")
+    .trim()
+    .isLength({ min: 3 })
+    .escape(),
 
   async (req, res, next) => {
-    
-  let post = await Post.findById(req.params.post_id)
-  if (!(post.comments instanceof Array)) {
+    let post = await Post.findById(req.params.post_id);
+    if (!(post.comments instanceof Array)) {
       if (typeof post.comments === "undefined") post.comments = [];
       else post.comments = new Array(post.comments);
-  }
+    }
 
-  const newComment = new Comment({
-    targetPost: req.params.post_id,
-    author: "jane_doe",
-    date: new Date(),
-    content: req.body.new_comment,
-    comments: [],
-    stars: 0
-  })
+    const newComment = new Comment({
+      targetPost: req.params.post_id,
+      author: "jane_doe",
+      date: new Date(),
+      content: req.body.new_comment,
+      comments: [],
+      stars: 0,
+    });
 
-  post.comments.push(newComment._id)
+    post.comments.push(newComment._id);
 
-  const errors = validationResult(req);
+    const errors = validationResult(req);
 
-  const savedPost = new Post(
-    {
+    const savedPost = new Post({
       ...post,
       comments: post.comments,
-      _id: req.params.post_id
-     });
+      _id: req.params.post_id,
+    });
 
-  if (!errors.isEmpty()) {return res.json({message: errors})}
-  else {
-    newComment.save().then(
-      Post.findByIdAndUpdate(req.params.post_id, savedPost, {new: true}, async function (err, result) {
-        if (err) { return next(err); } else {res.json(result)}
-        })
-    )
-  }
-}];
+    if (!errors.isEmpty()) {
+      return res.json({ message: errors });
+    } else {
+      newComment.save().then(
+        Post.findByIdAndUpdate(
+          req.params.post_id,
+          savedPost,
+          { new: true },
+          async function (err, result) {
+            if (err) {
+              return next(err);
+            } else {
+              res.json(result);
+            }
+          }
+        )
+      );
+    }
+  },
+];
 
 exports.comment_update = (req, res, next) => {
   res.send("Comment edit PUT");
@@ -153,13 +169,13 @@ exports.comment_delete = (req, res, next) => {
 };
 
 exports.user_profile = async (req, res, next) => {
-  const user = await User.find({username: req.params.author}, "username")
-  res.json( {...user} );
+  const user = await User.find({ username: req.params.author }, "username");
+  res.json({ ...user });
 };
 
 exports.user_details_get = async (req, res, next) => {
-  const user = await User.find({username: req.params.author}, "username")
-  res.json( {...user} );
+  const user = await User.find({ username: req.params.author }, "username");
+  res.json({ ...user });
 };
 
 exports.user_details_update = (req, res, next) => {
@@ -172,23 +188,26 @@ exports.signup_get = (req, res, next) => {
 
 exports.signup_post = async function (req, res, next) {
   //check if username already exists
-  let checkResult = await User.findOne({username: req.body.username.toLowerCase()})
+  let checkResult = await User.findOne({
+    username: req.body.username.toLowerCase(),
+  });
 
   //if username does not exist, create user:
-  if (!checkResult)
-  {
+  if (!checkResult) {
     bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
       const user = new User({
         username: req.body.username.toLowerCase(),
         password: hashedPassword,
-      })
-        .save()
-        res.json({message: "Successfully created user."})
+      }).save();
+      res.json({ message: "Successfully created user." });
     });
-  } 
+  }
 
   //if username does exist:
-  else {res.json({message: "This username already exists."})}}
+  else {
+    res.json({ message: "This username already exists." });
+  }
+};
 
 exports.login_get = function (req, res, next) {
   res.render("login", { user: req.user });
