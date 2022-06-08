@@ -28,6 +28,7 @@ var app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
+// used to verify login credentials and issue JWT if valid.
 passport.use(
   new LocalStrategy((username, password, done) => {
     User.findOne({ username: username.toLowerCase() }, (err, user) => {

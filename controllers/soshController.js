@@ -1,5 +1,4 @@
 const Post = require("../models/post");
-const Tag = require("../models/tag");
 const User = require("../models/user");
 const Comment = require("../models/comment");
 const { body, validationResult } = require("express-validator");
@@ -8,24 +7,24 @@ const passport = require("passport");
 const JWTStrategy = require("passport-jwt").Strategy;
 const jsonwebtoken = require("jsonwebtoken");
 const issueJWT = require("../config/issueJWT");
-const { token } = require("morgan");
 require("dotenv").config();
 
-exports.index = function (req, res, next) {
-  Post.find({}, "author content date tags comments stars")
-    .sort({ date: -1 })
-    .populate("tags")
+exports.index = (req, res, next) => {
+  let token = req.headers.authorization.split(" ")[1];
+  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+  let userID = decoded.sub;
+  User.findById(userID, "username posts")
+    // .sort({ date: -1 })
+    .populate("posts")
     .exec(function (err, list_posts) {
       if (err) {
-        return next(err);
+        res.send(err);
       }
       //Successful, so render
-      res.render("index", {
-        title: `Social Media`,
-        post_list: list_posts,
-        user: req.user,
-        home: true,
-      });
+      else
+        res.json({
+          ...list_posts,
+        });
     });
 };
 

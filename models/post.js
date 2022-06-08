@@ -8,20 +8,22 @@ const PostSchema = new Schema({
   author: { type: String, required: true },
   date: { type: Date, required: true },
   content: { type: String, required: true, maxlength: 600 },
-  // tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
-  tags: { type: Array },
   comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
   stars: { type: Number },
 });
 
 // Virtual for post's URL
 PostSchema.virtual("url").get(function () {
-  return "/" + this.author + '/' + this._id;
+  return "/" + this.author + "/" + this._id;
 });
 
 // Virtual for formatted date.
 PostSchema.virtual("formatted_date").get(function () {
-  return DateTime.fromJSDate(this.date).toLocaleString(DateTime.DATE_MED) + " at " + DateTime.fromJSDate(this.date).toLocaleString(DateTime.TIME_SIMPLE);
+  return (
+    DateTime.fromJSDate(this.date).toLocaleString(DateTime.DATE_MED) +
+    " at " +
+    DateTime.fromJSDate(this.date).toLocaleString(DateTime.TIME_SIMPLE)
+  );
 });
 
 //Export model
