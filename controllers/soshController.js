@@ -67,6 +67,11 @@ exports.post_create_post = [
           if (err) {
             return next(err);
           }
+          async () => {
+            let result = await User.findById(post.author);
+            await result.posts.push(post._id);
+            await result.save();
+          };
           //Successful, so render
           res.json({ ...post });
         });
@@ -195,6 +200,8 @@ exports.signup_post = async function (req, res, next) {
       const user = new User({
         username: req.body.username.toLowerCase(),
         password: hashedPassword,
+        posts: [],
+        connections: [],
       }).save();
       res.json({ message: "Successfully created user." });
     });
