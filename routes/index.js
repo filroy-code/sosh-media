@@ -18,8 +18,7 @@ router.post("/logout", soshController.logout);
 
 //POSTS
 //Post: Create
-router.get("/new", soshController.post_create_get);
-router.post("/new", soshController.post_create_post);
+router.post("/:author", soshController.post_create_post);
 
 //Post: Details
 router.get("/:author/:post_id", soshController.post_details);

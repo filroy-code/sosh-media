@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 
 const PostSchema = new Schema({
   // author: { type: Schema.Types.ObjectId, ref: "User" },
-  author: { type: String, required: true },
+  author: { type: Schema.Types.ObjectId, ref: "User", required: true },
   date: { type: Date, required: true },
   content: { type: String, required: true, maxlength: 600 },
   comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
-  stars: { type: Number },
+  stars: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
 // Virtual for post's URL

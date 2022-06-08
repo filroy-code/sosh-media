@@ -28,35 +28,33 @@ exports.index = (req, res, next) => {
     });
 };
 
-exports.post_create_get = (req, res, next) => {
-  res.render("new");
-};
+// exports.post_create_get = (req, res, next) => {
+//   res.render("new");
+// };
 
 exports.post_create_post = [
   body("content", "Please input some content").trim().isLength({ min: 1 }),
 
   (req, res, next) => {
-    console.log("processing");
+    console.log(req.body);
 
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
     // Create a Post object with escaped and trimmed data.
     const post = new Post({
-      // author: jwt.decode(),
-      author: "john_bonham",
+      author: req.body.author,
       content: req.body.content,
       date: new Date(),
-      tags: [],
-      stars: 0,
+      comments: [],
+      stars: [],
     });
 
     if (!errors.isEmpty()) {
       // There are errors. Render form again with sanitized values/error messages.
       {
-        res.render("new", {
-          errors: errors.array(),
-        });
+        res.send(errors);
+        // errors: errors.array(),
       }
     } else {
       // Data from form is valid. Save post.
@@ -70,7 +68,7 @@ exports.post_create_post = [
             return next(err);
           }
           //Successful, so render
-          res.json({ ...post._doc });
+          res.json({ ...post });
         });
       });
     }
