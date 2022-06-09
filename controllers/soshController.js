@@ -14,8 +14,13 @@ exports.index = (req, res, next) => {
   let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
   let userID = decoded.sub;
   User.findById(userID, "username posts")
-    // .sort({ date: -1 })
-    .populate("posts")
+    .sort({ date: 1 })
+    .populate({
+      path: "posts",
+      populate: {
+        path: "author",
+      },
+    })
     .exec(function (err, list_posts) {
       if (err) {
         res.send(err);
@@ -35,7 +40,7 @@ exports.index = (req, res, next) => {
 exports.post_create_post = [
   body("content", "Please input some content").trim().isLength({ min: 1 }),
 
-  (req, res, next) => {
+  async (req, res, next) => {
     console.log(req.body);
 
     // Extract the validation errors from a request.
@@ -57,6 +62,15 @@ exports.post_create_post = [
         // errors: errors.array(),
       }
     } else {
+      // saves new post as ObjectID under user who made the post.
+      let result = await User.findById(post.author);
+      result.posts.push(post._id);
+      result.save(function (err) {
+        if (err) {
+          return next(err);
+        }
+      });
+
       // Data from form is valid. Save post.
       post.save(function (err) {
         if (err) {
@@ -67,11 +81,7 @@ exports.post_create_post = [
           if (err) {
             return next(err);
           }
-          async () => {
-            let result = await User.findById(post.author);
-            await result.posts.push(post._id);
-            await result.save();
-          };
+
           //Successful, so render
           res.json({ ...post });
         });
