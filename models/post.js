@@ -14,7 +14,7 @@ const PostSchema = new Schema({
 
 // Virtual for post's URL
 PostSchema.virtual("url").get(function () {
-  return "/" + this.author + "/" + this._id;
+  return `/${this.author.username}/${this._id}`;
 });
 
 // Virtual for formatted date.
@@ -25,6 +25,8 @@ PostSchema.virtual("formatted_date").get(function () {
     DateTime.fromJSDate(this.date).toLocaleString(DateTime.TIME_SIMPLE)
   );
 });
+
+PostSchema.set("toJSON", { virtuals: true });
 
 //Export model
 module.exports = mongoose.model("Post", PostSchema);

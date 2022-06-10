@@ -14,12 +14,15 @@ exports.index = (req, res, next) => {
   let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
   let userID = decoded.sub;
   User.findById(userID, "username posts")
-    .sort({ date: 1 })
+    .sort({ date: -1 })
     .populate({
       path: "posts",
-      populate: {
-        path: "author",
-      },
+      populate: [
+        {
+          path: "author",
+        },
+        { path: "comments", populate: { path: "author" } },
+      ],
     })
     .exec(function (err, list_posts) {
       if (err) {
@@ -120,10 +123,9 @@ exports.comment_details = async (req, res, next) => {
 };
 
 exports.comment_create = [
-  body("new_comment", "Comment must contain some content.")
+  body("content", "Comment must contain some content.")
     .trim()
-    .isLength({ min: 3 })
-    .escape(),
+    .isLength({ min: 1 }),
 
   async (req, res, next) => {
     let post = await Post.findById(req.params.post_id);
@@ -134,11 +136,11 @@ exports.comment_create = [
 
     const newComment = new Comment({
       targetPost: req.params.post_id,
-      author: "jane_doe",
+      author: req.body.author,
       date: new Date(),
-      content: req.body.new_comment,
+      content: req.body.content,
       comments: [],
-      stars: 0,
+      stars: [],
     });
 
     post.comments.push(newComment._id);
@@ -158,7 +160,6 @@ exports.comment_create = [
         Post.findByIdAndUpdate(
           req.params.post_id,
           savedPost,
-          { new: true },
           async function (err, result) {
             if (err) {
               return next(err);
