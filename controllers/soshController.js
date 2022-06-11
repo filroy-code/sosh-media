@@ -122,52 +122,75 @@ exports.comment_details = async (req, res, next) => {
   res.json({ comment });
 };
 
-exports.comment_create = [
+exports.add_Star_or_Comment = [
   body("content", "Comment must contain some content.")
     .trim()
     .isLength({ min: 1 }),
 
   async (req, res, next) => {
     let post = await Post.findById(req.params.post_id);
-    if (!(post.comments instanceof Array)) {
-      if (typeof post.comments === "undefined") post.comments = [];
-      else post.comments = new Array(post.comments);
+    // if (!(post.comments instanceof Array)) {
+    //   if (typeof post.comments === "undefined") post.comments = [];
+    //   else post.comments = new Array(post.comments);
+    // }
+    // if (!(post.stars instanceof Array)) {
+    //   if (typeof post.stars === "undefined") post.stars = [];
+    //   else post.stars = new Array(post.stars);
+    // }
+
+    if (req.body.content) {
+      const newComment = new Comment({
+        targetPost: req.params.post_id,
+        author: req.body.author,
+        date: new Date(),
+        content: req.body.content,
+        comments: [],
+        stars: [],
+      });
+
+      post.comments.push(newComment._id);
+
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.json({ message: errors });
+      } else {
+        newComment.save().then(
+          Post.findByIdAndUpdate(
+            req.params.post_id,
+            post,
+            async function (err, result) {
+              if (err) {
+                return next(err);
+              } else {
+                res.json(result);
+              }
+            }
+          )
+        );
+      }
     }
 
-    const newComment = new Comment({
-      targetPost: req.params.post_id,
-      author: req.body.author,
-      date: new Date(),
-      content: req.body.content,
-      comments: [],
-      stars: [],
-    });
+    if (req.body.userStar) {
+      if (post.stars.includes(req.body.userStar)) {
+        console.log("hello");
+        let newStars = post.stars.filter((item) => item != req.body.userStar);
+        console.log(newStars);
+        post.stars = newStars;
+      } else {
+        post.stars.push(req.body.userStar);
+      }
 
-    post.comments.push(newComment._id);
-
-    const errors = validationResult(req);
-
-    const savedPost = new Post({
-      ...post,
-      comments: post.comments,
-      _id: req.params.post_id,
-    });
-
-    if (!errors.isEmpty()) {
-      return res.json({ message: errors });
-    } else {
-      newComment.save().then(
-        Post.findByIdAndUpdate(
-          req.params.post_id,
-          savedPost,
-          async function (err, result) {
-            if (err) {
-              return next(err);
-            } else {
-              res.json(result);
-            }
+      Post.findByIdAndUpdate(
+        req.params.post_id,
+        post,
+        async function (err, result) {
+          if (err) {
+            return next(err);
+          } else {
+            res.json(result);
           }
-        )
+        }
       );
     }
   },

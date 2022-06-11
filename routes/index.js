@@ -35,8 +35,8 @@ router.delete("/:author/:post_id", soshController.post_delete);
 //Comment: Details
 router.get("/:author/:post_id/:comment_id", soshController.comment_details);
 
-//Comment: Create
-router.post("/:author/:post_id/", soshController.comment_create);
+//Comment & Star: Create
+router.post("/:author/:post_id/", soshController.add_Star_or_Comment);
 
 //Comment: Update
 router.put("/:author/:post_id/:comment_id", soshController.comment_update);
