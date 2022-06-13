@@ -272,3 +272,7 @@ exports.logout = function (req, res, next) {
   req.logout();
   res.redirect("/");
 };
+
+exports.search = function (req, res, next) {
+  res.json({ search: `${req.params.searchQuery}` });
+};

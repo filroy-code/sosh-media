@@ -5,6 +5,9 @@ var soshController = require("../controllers/soshController");
 //HOMEPAGE
 router.get("/", soshController.index);
 
+//SEARCH
+router.get("/search/:searchQuery", soshController.search);
+
 //AUTHENTICATION
 //User: Create
 router.get("/signup", soshController.signup_get);
