@@ -19,6 +19,13 @@ router.post("/login", soshController.login_post);
 
 router.post("/logout", soshController.logout);
 
+//USER DETAILS
+//User details: find user details
+router.get("/userDetails/:user", soshController.user_details_get);
+
+//User details: change user details
+router.post("/userDetails/:user", soshController.user_details_update);
+
 //POSTS
 //Post: Create
 router.post("/:author", soshController.post_create_post);
@@ -34,7 +41,6 @@ router.put("/:author/:post_id", soshController.post_update);
 router.delete("/:author/:post_id", soshController.post_delete);
 
 //COMMENTS
-
 //Comment: Details
 router.get("/:author/:post_id/:comment_id", soshController.comment_details);
 

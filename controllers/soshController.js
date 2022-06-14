@@ -205,12 +205,12 @@ exports.comment_delete = (req, res, next) => {
 };
 
 exports.user_profile = async (req, res, next) => {
-  const user = await User.find({ username: req.params.author }, "username");
+  const user = await User.find({ username: req.params.user }, "username");
   res.json({ ...user });
 };
 
 exports.user_details_get = async (req, res, next) => {
-  const user = await User.find({ username: req.params.author }, "username");
+  const user = await User.find({ username: req.params.user }, "username");
   res.json({ ...user });
 };
 
@@ -237,13 +237,13 @@ exports.signup_post = async function (req, res, next) {
         posts: [],
         connections: [],
       }).save();
-      res.json({ message: "Successfully created user." });
+      res.status(200).json({ message: "Successfully created user." });
     });
   }
 
   //if username does exist:
   else {
-    res.json({ message: "This username already exists." });
+    res.status(409).json({ message: "This username already exists." });
   }
 };
 
