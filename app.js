@@ -1,9 +1,11 @@
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
+var fs = require("fs");
 const cors = require("cors");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var multer = require("multer");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const JWTStrategy = require("passport-jwt").Strategy;
@@ -14,14 +16,17 @@ const bcrypt = require("bcryptjs");
 const issueJWT = require("./config/issueJWT");
 require("dotenv").config();
 
+// database connection
 var mongoose = require("mongoose");
 var mongoDB = process.env.DATABASE_CONNECTION;
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 var db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
+// server-side routes
 var indexRouter = require("./routes/index");
 
+// server
 var app = express();
 
 // view engine setup

@@ -1,13 +1,51 @@
 const Post = require("../models/post");
 const User = require("../models/user");
 const Comment = require("../models/comment");
+const ImageModel = require("../models/image");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const JWTStrategy = require("passport-jwt").Strategy;
 const jsonwebtoken = require("jsonwebtoken");
 const issueJWT = require("../config/issueJWT");
+const multer = require("multer");
+const fs = require("fs");
 require("dotenv").config();
+
+// used for storing images for use as User avatars.
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/jpeg" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/png"
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPEG and PNG files are accepted."), false);
+  }
+};
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + file.originalname);
+  },
+  fileFilter: fileFilter,
+});
+
+const upload = multer({
+  storage: storage,
+});
+////////////////////////////////////////////////////
+
+exports.imageUpdate = [
+  upload.single("image"),
+  (req, res, next) => {
+    res.send("completed");
+  },
+];
 
 exports.index = (req, res, next) => {
   let token = req.headers.authorization.split(" ")[1];
@@ -44,8 +82,6 @@ exports.post_create_post = [
   body("content", "Please input some content").trim().isLength({ min: 1 }),
 
   async (req, res, next) => {
-    console.log(req.body);
-
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
@@ -218,6 +254,10 @@ exports.user_details_update = (req, res, next) => {
   res.send("Update user details.");
 };
 
+exports.imageDisplay = (req, res, next) => {
+  res.send("image");
+};
+
 exports.signup_get = (req, res, next) => {
   res.render("signup");
 };
@@ -235,7 +275,8 @@ exports.signup_post = async function (req, res, next) {
         username: req.body.username.toLowerCase(),
         password: hashedPassword,
         posts: [],
-        connections: [],
+        following: [],
+        followers: [],
       }).save();
       res.status(200).json({ message: "Successfully created user." });
     });

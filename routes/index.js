@@ -26,6 +26,11 @@ router.get("/userDetails/:user", soshController.user_details_get);
 //User details: change user details
 router.post("/userDetails/:user", soshController.user_details_update);
 
+//IMAGE
+router.post("/image/:user", soshController.imageUpdate);
+
+router.get("/image/:user", soshController.imageDisplay);
+
 //POSTS
 //Post: Create
 router.post("/:author", soshController.post_create_post);
