@@ -1,7 +1,6 @@
 const Post = require("../models/post");
 const User = require("../models/user");
 const Comment = require("../models/comment");
-const ImageModel = require("../models/image");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const passport = require("passport");
@@ -10,9 +9,31 @@ const jsonwebtoken = require("jsonwebtoken");
 const issueJWT = require("../config/issueJWT");
 const multer = require("multer");
 const fs = require("fs");
+const aws = require("aws-sdk");
+const multerS3 = require("multer-s3");
 require("dotenv").config();
 
 // used for storing images for use as User avatars.
+
+const s3 = new aws.S3({
+  region: process.env.AWS_BUCKET_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
+
+const uploadS3 = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      cb(null, `${new Date().toISOString()}${file.originalname}`);
+    },
+  }),
+});
+
 const fileFilter = (req, file, cb) => {
   if (
     file.mimetype === "image/jpeg" ||
@@ -41,9 +62,24 @@ const upload = multer({
 ////////////////////////////////////////////////////
 
 exports.imageUpdate = [
-  upload.single("image"),
-  (req, res, next) => {
-    res.send("completed");
+  uploadS3.single("image"),
+  async (req, res, next) => {
+    try {
+      let token = req.headers.authorization.split(" ")[1];
+      let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+      let userID = decoded.sub;
+      let user = await User.findById(userID);
+      user.avatar = req.file.location;
+      user.save(function (err) {
+        if (err) {
+          return next(err);
+        }
+      });
+      res.send("completed");
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err);
+    }
   },
 ];
 
@@ -277,6 +313,7 @@ exports.signup_post = async function (req, res, next) {
         posts: [],
         following: [],
         followers: [],
+        avatar: "",
       }).save();
       res.status(200).json({ message: "Successfully created user." });
     });
