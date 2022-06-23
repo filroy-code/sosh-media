@@ -19,53 +19,45 @@ router.post("/login", soshController.login_post);
 
 router.post("/logout", soshController.logout);
 
-//USER DETAILS
+//USERS
 //User details: find user details
-router.get("/userDetails/:user", soshController.user_details_get);
+router.get("/users/:user/details", soshController.imageDisplay);
 
 //User details: change user details
-router.post("/userDetails/:user", soshController.user_details_update);
+router.put("/users/:user/details", soshController.imageUpdate);
 
-//IMAGE
-router.post("/image/:user", soshController.imageUpdate);
+//COMMUNITY
+router.get("/users", soshController.findUsers);
 
-router.get("/image/:user", soshController.imageDisplay);
+router.get("/users/:user", soshController.get_user_feed);
 
 //POSTS
 //Post: Create
-router.post("/:author", soshController.post_create_post);
+router.post("/users/:user", soshController.post_create_post);
 
 //Post: Details
-router.get("/:author/:post_id", soshController.post_details);
-router.get("/:author/:post_id/deets", soshController.post_details_deets);
+router.get("/users/:user/:post_id", soshController.post_details);
 
 //Post: Update
-router.put("/:author/:post_id", soshController.post_update);
+router.put("/users/:user/:post_id", soshController.post_update);
 
 //Post: Delete
-router.delete("/:author/:post_id", soshController.post_delete);
+router.delete("/users/:user/:post_id", soshController.post_delete);
 
 //COMMENTS
 //Comment: Details
-router.get("/:author/:post_id/:comment_id", soshController.comment_details);
+router.get("/users/:user/:post_id/:comment_id", soshController.comment_details);
 
 //Comment & Star: Create
-router.post("/:author/:post_id/", soshController.add_Star_or_Comment);
+router.post("/users/:user/:post_id/", soshController.add_Star_or_Comment);
 
 //Comment: Update
-router.put("/:author/:post_id/:comment_id", soshController.comment_update);
+router.put("/users/:user/:post_id/:comment_id", soshController.comment_update);
 
 //Comment: Delete
-router.delete("/:author/:post_id/:comment_id", soshController.comment_delete);
-
-//USERS
-//User: See profile.
-router.get("/:author", soshController.user_profile);
-
-//User: User details page.
-router.get("/:author/details", soshController.user_details_get);
-
-//User: Edit details (SUBMIT CHANGES).
-router.put("/:author/details", soshController.user_details_update);
+router.delete(
+  "/users/:user/:post_id/:comment_id",
+  soshController.comment_delete
+);
 
 module.exports = router;

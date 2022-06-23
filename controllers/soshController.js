@@ -87,7 +87,7 @@ exports.index = (req, res, next) => {
   let token = req.headers.authorization.split(" ")[1];
   let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
   let userID = decoded.sub;
-  User.findById(userID, "username posts")
+  User.findById(userID, "username posts avatar")
     .sort({ date: -1 })
     .populate({
       path: "posts",
@@ -172,11 +172,6 @@ exports.post_details = [
     res.json({ ...post._doc });
   },
 ];
-
-exports.post_details_deets = async (req, res, next) => {
-  let post = await Post.findById(req.params.post_id);
-  res.render("post_details", { post: post });
-};
 
 exports.post_update = (req, res, next) => {
   res.send("Post update PUT");
@@ -281,8 +276,11 @@ exports.user_profile = async (req, res, next) => {
   res.json({ ...user });
 };
 
-exports.user_details_get = async (req, res, next) => {
-  const user = await User.find({ username: req.params.user }, "username");
+exports.get_user_feed = async (req, res, next) => {
+  const user = await User.find(
+    { username: req.params.user },
+    "username posts avatar followers following"
+  );
   res.json({ ...user });
 };
 
@@ -353,4 +351,12 @@ exports.logout = function (req, res, next) {
 
 exports.search = function (req, res, next) {
   res.json({ search: `${req.params.searchQuery}` });
+};
+
+exports.findUsers = async function (req, res, next) {
+  let userList = await User.find(
+    { limit: 20, sort: { followers: 1 } },
+    "username avatar posts followers"
+  );
+  res.json({ userList });
 };
