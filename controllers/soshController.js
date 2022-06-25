@@ -64,50 +64,58 @@ const upload = multer({
 exports.imageUpdate = [
   uploadS3.single("image"),
   async (req, res, next) => {
-    try {
-      let token = req.headers.authorization.split(" ")[1];
-      let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
-      let userID = decoded.sub;
-      let user = await User.findById(userID);
-      user.avatar = req.file.location;
-      user.save(function (err) {
-        if (err) {
-          return next(err);
-        }
-      });
+    if (req.file) {
+      try {
+        let token = req.headers.authorization.split(" ")[1];
+        let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+        let userID = decoded.sub;
+        let user = await User.findById(userID);
+        user.avatar = req.file.location;
+        user.save(function (err) {
+          if (err) {
+            return next(err);
+          }
+        });
+        res.send("completed");
+      } catch (err) {
+        console.log(err);
+        res.status(500).send(err);
+      }
+    } else {
       res.send("completed");
-    } catch (err) {
-      console.log(err);
-      res.status(500).send(err);
     }
   },
 ];
 
 exports.index = (req, res, next) => {
-  let token = req.headers.authorization.split(" ")[1];
-  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
-  let userID = decoded.sub;
-  User.findById(userID, "username posts avatar")
-    .sort({ date: -1 })
-    .populate({
-      path: "posts",
-      populate: [
-        {
-          path: "author",
-        },
-        { path: "comments", populate: { path: "author" } },
-      ],
-    })
-    .exec(function (err, list_posts) {
-      if (err) {
-        res.send(err);
-      }
-      //Successful, so render
-      else
-        res.json({
-          ...list_posts,
-        });
-    });
+  try {
+    let token = req.headers.authorization.split(" ")[1];
+    let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+    let userID = decoded.sub;
+    User.findById(userID, "username posts avatar")
+      .sort({ date: -1 })
+      .populate({
+        path: "posts",
+        populate: [
+          {
+            path: "author",
+          },
+          { path: "comments", populate: { path: "author" } },
+        ],
+      })
+      .exec(function (err, list_posts) {
+        if (err) {
+          res.send(err);
+        }
+        //Successful, so render
+        else
+          res.json({
+            ...list_posts,
+          });
+      });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // exports.post_create_get = (req, res, next) => {
@@ -196,14 +204,6 @@ exports.add_Star_or_Comment = [
 
   async (req, res, next) => {
     let post = await Post.findById(req.params.post_id);
-    // if (!(post.comments instanceof Array)) {
-    //   if (typeof post.comments === "undefined") post.comments = [];
-    //   else post.comments = new Array(post.comments);
-    // }
-    // if (!(post.stars instanceof Array)) {
-    //   if (typeof post.stars === "undefined") post.stars = [];
-    //   else post.stars = new Array(post.stars);
-    // }
 
     if (req.body.content) {
       const newComment = new Comment({
@@ -240,7 +240,6 @@ exports.add_Star_or_Comment = [
 
     if (req.body.userStar) {
       if (post.stars.includes(req.body.userStar)) {
-        console.log("hello");
         let newStars = post.stars.filter((item) => item != req.body.userStar);
         console.log(newStars);
         post.stars = newStars;
@@ -280,7 +279,17 @@ exports.get_user_feed = async (req, res, next) => {
   const user = await User.find(
     { username: req.params.user },
     "username posts avatar followers following"
-  );
+  )
+    .populate({
+      path: "posts",
+      populate: [
+        {
+          path: "author",
+        },
+        { path: "comments", populate: { path: "author" } },
+      ],
+    })
+    .sort({ "posts.date": 1 });
   res.json({ ...user });
 };
 
@@ -355,8 +364,33 @@ exports.search = function (req, res, next) {
 
 exports.findUsers = async function (req, res, next) {
   let userList = await User.find(
-    { limit: 20, sort: { followers: 1 } },
+    { limit: 20 },
     "username avatar posts followers"
   );
-  res.json({ userList });
+  res.status(200).json({ userList });
+};
+
+exports.change_user = async function (req, res, next) {
+  let userToBeFollowed = await User.findById(req.body.followee);
+  let userToDoFollowing = await User.findById(req.body.follower);
+
+  if (userToBeFollowed.followers.includes(req.body.follower)) {
+    let newFollowers = userToBeFollowed.followers.filter(
+      (item) => item != req.body.follower
+    );
+    let newFollowing = userToDoFollowing.following.filter(
+      (item) => item != req.body.followeee
+    );
+    userToBeFollowed.followers = newFollowers;
+    userToDoFollowing.following = newFollowing;
+    userToBeFollowed.save();
+    userToDoFollowing.save();
+    res.status(200).send("completed");
+  } else {
+    userToBeFollowed.followers.push(req.body.follower);
+    userToDoFollowing.following.push(req.body.followee);
+    userToBeFollowed.save();
+    userToDoFollowing.save();
+    res.status(200).send("completed");
+  }
 };
