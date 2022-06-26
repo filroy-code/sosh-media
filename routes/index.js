@@ -29,6 +29,8 @@ router.put("/users/:user/details", soshController.imageUpdate);
 //COMMUNITY
 router.get("/users", soshController.findUsers);
 
+router.post("/search", soshController.searchUsers);
+
 router.put("/users/:user", soshController.change_user);
 
 router.get("/users/:user", soshController.get_user_feed);

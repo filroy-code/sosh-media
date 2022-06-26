@@ -370,6 +370,13 @@ exports.findUsers = async function (req, res, next) {
   res.status(200).json({ userList });
 };
 
+exports.searchUsers = async function (req, res, next) {
+  let userList = await User.find({
+    username: { $regex: req.body.searchQuery, $options: "i" },
+  });
+  res.json(userList);
+};
+
 exports.change_user = async function (req, res, next) {
   let userToBeFollowed = await User.findById(req.body.followee);
   let userToDoFollowing = await User.findById(req.body.follower);
