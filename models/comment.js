@@ -26,5 +26,7 @@ CommentSchema.virtual("formatted_date").get(function () {
   );
 });
 
+CommentSchema.set("toJSON", { virtuals: true });
+
 //Export model
 module.exports = mongoose.model("Comment", CommentSchema);
