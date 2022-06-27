@@ -92,17 +92,20 @@ exports.index = (req, res, next) => {
     let token = req.headers.authorization.split(" ")[1];
     let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
     let userID = decoded.sub;
+    const options = { sort: { date: -1 } };
     User.findById(userID, "username posts avatar")
-      .sort({ date: -1 })
       .populate({
         path: "posts",
+        options,
         populate: [
           {
             path: "author",
           },
           { path: "comments", populate: { path: "author" } },
         ],
+        // options,
       })
+      .sort("-posts.date")
       .exec(function (err, list_posts) {
         if (err) {
           res.send(err);
@@ -276,12 +279,14 @@ exports.user_profile = async (req, res, next) => {
 };
 
 exports.get_user_feed = async (req, res, next) => {
+  const options = { sort: { date: -1 } };
   const user = await User.find(
     { username: req.params.user },
     "username posts avatar followers following"
   )
     .populate({
       path: "posts",
+      options,
       populate: [
         {
           path: "author",
