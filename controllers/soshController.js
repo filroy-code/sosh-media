@@ -46,24 +46,24 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, new Date().toISOString() + file.originalname);
-  },
-  fileFilter: fileFilter,
-});
-
-const upload = multer({
-  storage: storage,
-});
 ////////////////////////////////////////////////////
 
 exports.imageUpdate = [
   uploadS3.single("image"),
   async (req, res, next) => {
+    if (req.body.noImage) {
+      try {
+        let token = req.headers.authorization.split(" ")[1];
+        let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+        let userID = decoded.sub;
+        let user = await User.findById(userID);
+        user.avatar = "";
+        user.save();
+        res.status(200).send("completed");
+      } catch (err) {
+        console.log(err);
+      }
+    }
     if (req.file) {
       try {
         let token = req.headers.authorization.split(" ")[1];
@@ -81,8 +81,6 @@ exports.imageUpdate = [
         console.log(err);
         res.status(500).send(err);
       }
-    } else {
-      res.send("completed");
     }
   },
 ];
@@ -294,6 +292,7 @@ exports.get_user_feed = async (req, res, next) => {
         { path: "comments", populate: { path: "author" } },
       ],
     })
+    .populate("followers following", "username avatar")
     .sort({ "posts.date": 1 });
   res.json({ ...user });
 };
