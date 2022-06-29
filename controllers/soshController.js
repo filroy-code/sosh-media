@@ -390,7 +390,7 @@ exports.change_user = async function (req, res, next) {
       (item) => item != req.body.follower
     );
     let newFollowing = userToDoFollowing.following.filter(
-      (item) => item != req.body.followeee
+      (item) => item != req.body.followee
     );
     userToBeFollowed.followers = newFollowers;
     userToDoFollowing.following = newFollowing;
