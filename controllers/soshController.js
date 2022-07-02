@@ -186,8 +186,16 @@ exports.post_update = (req, res, next) => {
   res.send("Post update PUT");
 };
 
-exports.post_delete = (req, res, next) => {
-  res.send("Post DELETE");
+exports.post_delete = async (req, res, next) => {
+  let token = req.headers.authorization.split(" ")[1];
+  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+  let userID = decoded.sub;
+  let user = await User.findById(userID);
+  let filteredPosts = user.posts.filter((post) => post != req.params.post_id);
+  console.log(filteredPosts);
+  user.posts = filteredPosts;
+  user.save();
+  res.status(200).send("Post deletion successful.");
 };
 
 exports.comment_details = async (req, res, next) => {
