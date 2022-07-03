@@ -182,8 +182,23 @@ exports.post_details = [
   },
 ];
 
-exports.post_update = (req, res, next) => {
-  res.send("Post update PUT");
+exports.post_update = async (req, res, next) => {
+  try {
+    let post = await Post.findById(req.params.post_id);
+    let token = req.headers.authorization.split(" ")[1];
+    let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+    let userID = decoded.sub;
+    if (userID == post.author) {
+      post.content = req.body.editedContent;
+      post.edited = new Date();
+      post.save();
+      res.status(200).send("Post content successfuly edited.");
+    } else {
+      res.send("Invalid token.");
+    }
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 exports.post_delete = async (req, res, next) => {
