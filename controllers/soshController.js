@@ -90,30 +90,16 @@ exports.index = (req, res, next) => {
     let token = req.headers.authorization.split(" ")[1];
     let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
     let userID = decoded.sub;
-    const options = { sort: { date: -1 } };
-    User.findById(userID, "username posts avatar")
-      .populate({
-        path: "posts",
-        options,
-        populate: [
-          {
-            path: "author",
-          },
-          { path: "comments", populate: { path: "author" } },
-        ],
-        // options,
-      })
-      .sort("-posts.date")
-      .exec(function (err, list_posts) {
-        if (err) {
-          res.send(err);
-        }
-        //Successful, so render
-        else
-          res.json({
-            ...list_posts,
-          });
-      });
+    User.findById(userID, "username avatar").exec(function (err, user_details) {
+      if (err) {
+        res.send(err);
+      }
+      //Successful, so render
+      else
+        res.json({
+          ...user_details,
+        });
+    });
   } catch (err) {
     console.log(err);
   }
@@ -447,24 +433,9 @@ exports.homefeed = async (req, res, next) => {
     $or: [{ author: user._id }, { author: { $in: user.following } }],
   })
     .sort({ date: -1 })
-    .populate(
-      [{ path: "author" }, { path: "comments", populate: { path: "author" } }]
-      // path: "comments",
-      // options,
-      // populate: { path: "author" },
-    );
+    .populate([
+      { path: "author" },
+      { path: "comments", populate: { path: "author" } },
+    ]);
   res.json({ posts: postList });
-  // user.following.forEach((user) => {
-  //   userList.push(user);
-  // });
-  // userList.push(userID);
-  // let postQuery = [];
-  // let userPosts = [];
-
-  // userList.forEach(async (person) => {
-  //   userPosts = await Post.find({ author: person });
-  //   userPosts.forEach((post) => postQuery.push(post));
-  // });
-
-  // res.json(userPosts);
 };
