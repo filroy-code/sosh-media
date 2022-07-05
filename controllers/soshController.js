@@ -207,8 +207,15 @@ exports.post_delete = async (req, res, next) => {
   let userID = decoded.sub;
   let user = await User.findById(userID);
   let filteredPosts = user.posts.filter((post) => post != req.params.post_id);
-  console.log(filteredPosts);
   user.posts = filteredPosts;
+  Post.findByIdAndDelete(req.params.post_id, (err, docs) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Error deleting post.");
+    } else {
+      console.log(`Deleted ${docs}`);
+    }
+  });
   user.save();
   res.status(200).send("Post deletion successful.");
 };
@@ -427,4 +434,37 @@ exports.change_user = async function (req, res, next) {
     userToDoFollowing.save();
     res.status(200).send("completed");
   }
+};
+
+exports.homefeed = async (req, res, next) => {
+  let token = req.headers.authorization.split(" ")[1];
+  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+  let userID = decoded.sub;
+  let user = await User.findById(userID);
+  const options = { sort: { date: -1 } };
+
+  let postList = await Post.find({
+    $or: [{ author: user._id }, { author: { $in: user.following } }],
+  })
+    .sort({ date: -1 })
+    .populate(
+      [{ path: "author" }, { path: "comments", populate: { path: "author" } }]
+      // path: "comments",
+      // options,
+      // populate: { path: "author" },
+    );
+  res.json({ posts: postList });
+  // user.following.forEach((user) => {
+  //   userList.push(user);
+  // });
+  // userList.push(userID);
+  // let postQuery = [];
+  // let userPosts = [];
+
+  // userList.forEach(async (person) => {
+  //   userPosts = await Post.find({ author: person });
+  //   userPosts.forEach((post) => postQuery.push(post));
+  // });
+
+  // res.json(userPosts);
 };
