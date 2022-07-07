@@ -105,6 +105,7 @@ exports.index = (req, res, next) => {
   }
 };
 
+// protection required.
 exports.post_create_post = [
   body("content", "Please input some content").trim().isLength({ min: 1 }),
 
@@ -136,23 +137,13 @@ exports.post_create_post = [
           return next(err);
         }
       });
-
-      // Data from form is valid. Save post.
-      post.save(function (err) {
-        if (err) {
-          return next(err);
-        }
-        //successful - show created post object.
-        Post.findById(post._id).exec(function (err, post) {
-          if (err) {
-            return next(err);
-          }
-
-          //Successful, so render
-          res.json({ ...post });
-        });
-      });
     }
+    await post.save();
+    let createdPost = await Post.findById(post._id).populate([
+      { path: "author" },
+      { path: "comments", populate: { path: "author" } },
+    ]);
+    res.json(createdPost);
   },
 ];
 
