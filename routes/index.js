@@ -19,7 +19,8 @@ router.post("/login", soshController.login_post);
 
 router.post("/logout", soshController.logout);
 
-router.get("/homefeed", soshController.homefeed);
+router.get("/homefeed/:page", soshController.homefeed);
+router.get("/paginate/:page", soshController.paginate);
 
 //USERS
 //User details: find user details
@@ -35,7 +36,7 @@ router.post("/search", soshController.searchUsers);
 
 router.put("/users/:user", soshController.change_user);
 
-router.get("/users/:user", soshController.get_user_feed);
+router.get("/users/:user/:page", soshController.get_user_feed);
 
 //POSTS
 //Post: Create
@@ -65,5 +66,7 @@ router.delete(
   "/users/:user/:post_id/:comment_id",
   soshController.comment_delete
 );
+
+router.get("/posts/:post_id", soshController.get_post_data);
 
 module.exports = router;

@@ -105,10 +105,6 @@ exports.index = (req, res, next) => {
   }
 };
 
-// exports.post_create_get = (req, res, next) => {
-//   res.render("new");
-// };
-
 exports.post_create_post = [
   body("content", "Please input some content").trim().isLength({ min: 1 }),
 
@@ -194,16 +190,24 @@ exports.post_delete = async (req, res, next) => {
   let user = await User.findById(userID);
   let filteredPosts = user.posts.filter((post) => post != req.params.post_id);
   user.posts = filteredPosts;
-  Post.findByIdAndDelete(req.params.post_id, (err, docs) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send("Error deleting post.");
-    } else {
-      console.log(`Deleted ${docs}`);
-    }
-  });
-  user.save();
-  res.status(200).send("Post deletion successful.");
+
+  let post = await Post.findById(req.params.post_id);
+
+  // if authenication passes, delete the post.
+  if (post.author == userID) {
+    Post.findByIdAndDelete(req.params.post_id, (err, docs) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Error deleting post.");
+      } else {
+        console.log(`Deleted ${docs}`);
+      }
+    });
+    user.save();
+    res.status(200).send("Post deletion successful.");
+  } else {
+    res.status(403).send("Authentication failed");
+  }
 };
 
 exports.comment_details = async (req, res, next) => {
@@ -293,24 +297,20 @@ exports.user_profile = async (req, res, next) => {
 };
 
 exports.get_user_feed = async (req, res, next) => {
-  const options = { sort: { date: -1 } };
-  const user = await User.find(
-    { username: req.params.user },
-    "username posts avatar followers following"
-  )
-    .populate({
-      path: "posts",
-      options,
+  const user = await User.find({ username: req.params.user });
+  let query = await Post.paginate(
+    { author: user },
+    {
+      sort: { date: -1 },
       populate: [
-        {
-          path: "author",
-        },
+        { path: "author" },
         { path: "comments", populate: { path: "author" } },
       ],
-    })
-    .populate("followers following", "username avatar")
-    .sort({ "posts.date": 1 });
-  res.json({ ...user });
+      page: req.params.page,
+      limit: 15,
+    }
+  );
+  res.json({ ...query });
 };
 
 exports.user_details_update = (req, res, next) => {
@@ -427,15 +427,45 @@ exports.homefeed = async (req, res, next) => {
   let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
   let userID = decoded.sub;
   let user = await User.findById(userID);
-  const options = { sort: { date: -1 } };
+  let query = await Post.paginate(
+    { $or: [{ author: user._id }, { author: { $in: user.following } }] },
+    {
+      sort: { date: -1 },
+      populate: [
+        { path: "author" },
+        { path: "comments", populate: { path: "author" } },
+      ],
+      page: req.params.page,
+      limit: 15,
+    }
+  );
+  res.json({ ...query });
+};
 
-  let postList = await Post.find({
-    $or: [{ author: user._id }, { author: { $in: user.following } }],
-  })
-    .sort({ date: -1 })
-    .populate([
-      { path: "author" },
-      { path: "comments", populate: { path: "author" } },
-    ]);
-  res.json({ posts: postList });
+exports.paginate = async (req, res, next) => {
+  let token = req.headers.authorization.split(" ")[1];
+  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+  let userID = decoded.sub;
+  let user = await User.findById(userID);
+  let query = await Post.paginate(
+    { $or: [{ author: user._id }, { author: { $in: user.following } }] },
+    {
+      sort: { date: -1 },
+      populate: [
+        { path: "author" },
+        { path: "comments", populate: { path: "author" } },
+      ],
+      page: req.params.page,
+      limit: 15,
+    }
+  );
+  res.json({ ...query });
+};
+
+exports.get_post_data = async (req, res, next) => {
+  const post = await Post.findById(req.params.post_id).populate([
+    { path: "author" },
+    { path: "comments", populate: { path: "author" } },
+  ]);
+  res.json(post);
 };

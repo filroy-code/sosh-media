@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { DateTime } = require("luxon");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const Schema = mongoose.Schema;
 
@@ -35,6 +36,7 @@ PostSchema.virtual("formatted_edit_date").get(function () {
   );
 });
 
+PostSchema.plugin(mongoosePaginate);
 PostSchema.set("toJSON", { virtuals: true });
 
 //Export model
