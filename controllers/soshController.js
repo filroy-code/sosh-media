@@ -288,7 +288,9 @@ exports.user_profile = async (req, res, next) => {
 };
 
 exports.get_user_feed = async (req, res, next) => {
-  const user = await User.find({ username: req.params.user });
+  const user = await User.find({ username: req.params.user }).populate(
+    "followers following"
+  );
   let query = await Post.paginate(
     { author: user },
     {
@@ -301,7 +303,7 @@ exports.get_user_feed = async (req, res, next) => {
       limit: 15,
     }
   );
-  res.json({ ...query });
+  res.json({ posts: { ...query }, user: { ...user } });
 };
 
 exports.user_details_update = (req, res, next) => {
