@@ -405,13 +405,13 @@ exports.change_user = async function (req, res, next) {
     userToDoFollowing.following = newFollowing;
     userToBeFollowed.save();
     userToDoFollowing.save();
-    res.status(200).send("completed");
+    res.status(200).json(userToDoFollowing);
   } else {
     userToBeFollowed.followers.push(req.body.follower);
     userToDoFollowing.following.push(req.body.followee);
     userToBeFollowed.save();
     userToDoFollowing.save();
-    res.status(200).send("completed");
+    res.status(200).json(userToDoFollowing);
   }
 };
 
