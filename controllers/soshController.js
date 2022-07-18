@@ -105,7 +105,6 @@ exports.index = (req, res, next) => {
   }
 };
 
-// protection required.
 exports.post_create_post = [
   body("content", "Please input some content").trim().isLength({ min: 1 }),
 
@@ -113,37 +112,46 @@ exports.post_create_post = [
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
-    // Create a Post object with escaped and trimmed data.
-    const post = new Post({
-      author: req.body.author,
-      content: req.body.content,
-      date: new Date(),
-      comments: [],
-      stars: [],
-    });
+    // verify that the user making the post is authorized.
+    let token = req.headers.authorization.split(" ")[1];
+    let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+    let userID = decoded.sub;
 
-    if (!errors.isEmpty()) {
-      // There are errors. Render form again with sanitized values/error messages.
-      {
-        res.send(errors);
-        // errors: errors.array(),
-      }
-    } else {
-      // saves new post as ObjectID under user who made the post.
-      let result = await User.findById(post.author);
-      result.posts.push(post._id);
-      result.save(function (err) {
-        if (err) {
-          return next(err);
-        }
+    if (userID === req.body.author) {
+      // Create a Post object with escaped and trimmed data.
+      const post = new Post({
+        author: req.body.author,
+        content: req.body.content,
+        date: new Date(),
+        comments: [],
+        stars: [],
       });
+
+      if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/error messages.
+        {
+          res.send(errors);
+          // errors: errors.array(),
+        }
+      } else {
+        // saves new post as ObjectID under user who made the post.
+        let result = await User.findById(post.author);
+        result.posts.push(post._id);
+        result.save(function (err) {
+          if (err) {
+            return next(err);
+          }
+        });
+      }
+      await post.save();
+      let createdPost = await Post.findById(post._id).populate([
+        { path: "author" },
+        { path: "comments", populate: { path: "author" } },
+      ]);
+      res.json(createdPost);
+    } else {
+      res.status(403).send("You are not authorized to make this post.");
     }
-    await post.save();
-    let createdPost = await Post.findById(post._id).populate([
-      { path: "author" },
-      { path: "comments", populate: { path: "author" } },
-    ]);
-    res.json(createdPost);
   },
 ];
 
@@ -216,60 +224,67 @@ exports.add_Star_or_Comment = [
 
   async (req, res, next) => {
     let post = await Post.findById(req.params.post_id);
+    let token = req.headers.authorization.split(" ")[1];
+    let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+    let userID = decoded.sub;
 
-    if (req.body.content) {
-      const newComment = new Comment({
-        targetPost: req.params.post_id,
-        author: req.body.author,
-        date: new Date(),
-        content: req.body.content,
-        comments: [],
-        stars: [],
-      });
+    if (userID === req.body.author) {
+      if (req.body.content) {
+        const newComment = new Comment({
+          targetPost: req.params.post_id,
+          author: req.body.author,
+          date: new Date(),
+          content: req.body.content,
+          comments: [],
+          stars: [],
+        });
 
-      post.comments.push(newComment._id);
+        post.comments.push(newComment._id);
 
-      const errors = validationResult(req);
+        const errors = validationResult(req);
 
-      if (!errors.isEmpty()) {
-        return res.json({ message: errors });
-      } else {
-        newComment.save().then(
-          Post.findByIdAndUpdate(
-            req.params.post_id,
-            post,
-            async function (err, result) {
-              if (err) {
-                return next(err);
-              } else {
-                res.json(result);
+        if (!errors.isEmpty()) {
+          return res.json({ message: errors });
+        } else {
+          newComment.save().then(
+            Post.findByIdAndUpdate(
+              req.params.post_id,
+              post,
+              async function (err, result) {
+                if (err) {
+                  return next(err);
+                } else {
+                  res.json(result);
+                }
               }
+            )
+          );
+        }
+      }
+
+      if (req.body.userStar) {
+        if (post.stars.includes(req.body.userStar)) {
+          let newStars = post.stars.filter((item) => item != req.body.userStar);
+          console.log(newStars);
+          post.stars = newStars;
+        } else {
+          post.stars.push(req.body.userStar);
+        }
+
+        Post.findByIdAndUpdate(
+          req.params.post_id,
+          post,
+          async function (err, result) {
+            if (err) {
+              return next(err);
+            } else {
+              res.json(result);
             }
-          )
+          }
         );
       }
-    }
-
-    if (req.body.userStar) {
-      if (post.stars.includes(req.body.userStar)) {
-        let newStars = post.stars.filter((item) => item != req.body.userStar);
-        console.log(newStars);
-        post.stars = newStars;
-      } else {
-        post.stars.push(req.body.userStar);
-      }
-
-      Post.findByIdAndUpdate(
-        req.params.post_id,
-        post,
-        async function (err, result) {
-          if (err) {
-            return next(err);
-          } else {
-            res.json(result);
-          }
-        }
-      );
+    } else {
+      res.status(403).send("You are not authorized to edit this post.");
     }
   },
 ];
@@ -391,51 +406,39 @@ exports.searchUsers = async function (req, res, next) {
 };
 
 exports.change_user = async function (req, res, next) {
+  let token = req.headers.authorization.split(" ")[1];
+  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+  let userID = decoded.sub;
+
   let userToBeFollowed = await User.findById(req.body.followee);
   let userToDoFollowing = await User.findById(req.body.follower);
 
-  if (userToBeFollowed.followers.includes(req.body.follower)) {
-    let newFollowers = userToBeFollowed.followers.filter(
-      (item) => item != req.body.follower
-    );
-    let newFollowing = userToDoFollowing.following.filter(
-      (item) => item != req.body.followee
-    );
-    userToBeFollowed.followers = newFollowers;
-    userToDoFollowing.following = newFollowing;
-    userToBeFollowed.save();
-    userToDoFollowing.save();
-    res.status(200).json(userToDoFollowing);
+  if (userID === req.body.follower) {
+    if (userToBeFollowed.followers.includes(req.body.follower)) {
+      let newFollowers = userToBeFollowed.followers.filter(
+        (item) => item != req.body.follower
+      );
+      let newFollowing = userToDoFollowing.following.filter(
+        (item) => item != req.body.followee
+      );
+      userToBeFollowed.followers = newFollowers;
+      userToDoFollowing.following = newFollowing;
+      userToBeFollowed.save();
+      userToDoFollowing.save();
+      res.status(200).json(userToDoFollowing);
+    } else {
+      userToBeFollowed.followers.push(req.body.follower);
+      userToDoFollowing.following.push(req.body.followee);
+      userToBeFollowed.save();
+      userToDoFollowing.save();
+      res.status(200).json(userToDoFollowing);
+    }
   } else {
-    userToBeFollowed.followers.push(req.body.follower);
-    userToDoFollowing.following.push(req.body.followee);
-    userToBeFollowed.save();
-    userToDoFollowing.save();
-    res.status(200).json(userToDoFollowing);
+    res.status(403).send("You are not authorized to complete this action.");
   }
 };
 
 exports.homefeed = async (req, res, next) => {
-  let token = req.headers.authorization.split(" ")[1];
-  let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
-  let userID = decoded.sub;
-  let user = await User.findById(userID);
-  let query = await Post.paginate(
-    { $or: [{ author: user._id }, { author: { $in: user.following } }] },
-    {
-      sort: { date: -1 },
-      populate: [
-        { path: "author" },
-        { path: "comments", populate: { path: "author" } },
-      ],
-      page: req.params.page,
-      limit: 15,
-    }
-  );
-  res.json({ ...query });
-};
-
-exports.paginate = async (req, res, next) => {
   let token = req.headers.authorization.split(" ")[1];
   let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
   let userID = decoded.sub;

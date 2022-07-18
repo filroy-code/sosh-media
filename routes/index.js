@@ -20,7 +20,6 @@ router.post("/login", soshController.login_post);
 router.post("/logout", soshController.logout);
 
 router.get("/homefeed/:page", soshController.homefeed);
-router.get("/paginate/:page", soshController.paginate);
 
 //USERS
 //User details: find user details
