@@ -228,7 +228,7 @@ exports.add_Star_or_Comment = [
     let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
     let userID = decoded.sub;
 
-    if (userID === req.body.author) {
+    if (userID === (req.body.author || req.body.userStar)) {
       if (req.body.content) {
         const newComment = new Comment({
           targetPost: req.params.post_id,
