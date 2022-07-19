@@ -86,7 +86,30 @@ exports.imageUpdate = [
 ];
 
 exports.index = (req, res, next) => {
-  res.send("Server running!");
+  if (req.headers.authorization) {
+    try {
+      let token = req.headers.authorization.split(" ")[1];
+      let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
+      let userID = decoded.sub;
+      User.findById(userID, "username avatar").exec(function (
+        err,
+        user_details
+      ) {
+        if (err) {
+          res.send(err);
+        }
+        //Successful, so render
+        else
+          res.json({
+            ...user_details,
+          });
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  } else {
+    res.send("Server active.");
+  }
 };
 
 exports.post_create_post = [
@@ -353,7 +376,7 @@ exports.login_post = async function (req, res, next) {
     "local",
     {
       session: false,
-      successRedirect: "/homefeed/1",
+      successRedirect: "/",
       failureRedirect: "/login",
     },
     (err, jwt) => {
@@ -362,6 +385,7 @@ exports.login_post = async function (req, res, next) {
       // res.redirect("index");
     }
   )(req, res, next);
+  // console.log(res);
 };
 
 exports.logout = function (req, res, next) {
