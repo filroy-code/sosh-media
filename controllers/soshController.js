@@ -362,7 +362,6 @@ exports.login_post = async function (req, res, next) {
       // res.redirect("index");
     }
   )(req, res, next);
-  // console.log(res);
 };
 
 exports.logout = function (req, res, next) {
