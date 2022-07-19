@@ -353,7 +353,7 @@ exports.login_post = async function (req, res, next) {
     "local",
     {
       session: false,
-      successRedirect: "/",
+      successRedirect: "/homefeed/1",
       failureRedirect: "/login",
     },
     (err, jwt) => {
