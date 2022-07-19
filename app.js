@@ -18,7 +18,7 @@ require("dotenv").config();
 
 // database connection
 var mongoose = require("mongoose");
-var mongoDB = process.env.DATABASE_CONNECTION;
+var mongoDB = process.env.MONGODB_URI || process.env.DATABASE_CONNECTION;
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 var db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
