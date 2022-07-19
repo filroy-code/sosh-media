@@ -86,23 +86,7 @@ exports.imageUpdate = [
 ];
 
 exports.index = (req, res, next) => {
-  try {
-    let token = req.headers.authorization.split(" ")[1];
-    let decoded = jsonwebtoken.verify(token, process.env.SESSION_SECRET);
-    let userID = decoded.sub;
-    User.findById(userID, "username avatar").exec(function (err, user_details) {
-      if (err) {
-        res.send(err);
-      }
-      //Successful, so render
-      else
-        res.json({
-          ...user_details,
-        });
-    });
-  } catch (err) {
-    console.log(err);
-  }
+  res.send("Server running!");
 };
 
 exports.post_create_post = [
